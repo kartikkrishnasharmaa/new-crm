@@ -11,8 +11,10 @@ import { useNavigate } from "react-router-dom";
 
 export default function Allstudents() {
   const [students, setStudents] = useState([]);
+  const [branches, setBranches] = useState([]);   // ✅ all branches
+  const [selectedBranch, setSelectedBranch] = useState(""); // ✅ branch filter
   const [search, setSearch] = useState("");
-  const [viewMode, setViewMode] = useState("list"); // list or card
+  const [viewMode, setViewMode] = useState("list");
   const [openMenuId, setOpenMenuId] = useState(null);
   const navigate = useNavigate();
 
@@ -45,18 +47,36 @@ export default function Allstudents() {
       console.error("Error fetching students:", error);
     }
   };
+  // ✅ Fetch Branches
+  const fetchBranches = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/branches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setBranches(res.data || []);
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+    }
+  };
 
   useEffect(() => {
     fetchStudents();
+    fetchBranches();
   }, []);
 
-  // Filter students by search
-  const filteredStudents = students.filter(
-    (s) =>
+  // ✅ Filter students by branch + search
+  const filteredStudents = students.filter((s) => {
+    const matchesBranch =
+      selectedBranch === "" || s.branch_id === parseInt(selectedBranch);
+
+    const matchesSearch =
       (s.full_name || "").toLowerCase().includes(search.toLowerCase()) ||
       (s.email || "").toLowerCase().includes(search.toLowerCase()) ||
-      (s.admission_number || "").toLowerCase().includes(search.toLowerCase())
-  );
+      (s.admission_number || "").toLowerCase().includes(search.toLowerCase());
+
+    return matchesBranch && matchesSearch;
+  });
 
   return (
       <div className="px-5">
@@ -68,7 +88,19 @@ export default function Allstudents() {
               ({filteredStudents.length})
             </span>
           </h1>
-
+  {/* ✅ Branch Dropdown */}
+        <select
+          value={selectedBranch}
+          onChange={(e) => setSelectedBranch(e.target.value)}
+          className="border p-2 rounded w-full md:w-60"
+        >
+          <option value="">All Branches</option>
+          {branches.map((branch) => (
+            <option key={branch.id} value={branch.id}>
+              {branch.branch_name}
+            </option>
+          ))}
+        </select>
           <div className="flex gap-2 bg-gray-200 p-1 rounded-full">
             <button
               onClick={() => setViewMode("list")}
@@ -155,18 +187,14 @@ export default function Allstudents() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        onClick={() =>
-                          navigate(`/sinfodeadmin/students/${student.id}`)
-                        }
+                        onClick={() => alert("View API call yaha lagega")}
                         className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-purple-600"
                       >
                         <FaEye size={16} /> View
                       </button>
 
                       <button
-                        onClick={() =>
-                          navigate(`/sinfodeadmin/students/edit/${student.id}`)
-                        }
+                        onClick={() => alert("Edit API call yaha lagega")}
                         className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-100 text-blue-600"
                       >
                         <FaEdit size={16} /> Edit

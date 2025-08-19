@@ -19,6 +19,8 @@ import { useNavigate } from "react-router-dom";
 export default function Staff() {
   const [staffList, setStaffList] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState(""); // ✅ selected branch
+
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -30,25 +32,24 @@ export default function Staff() {
   const [openMenuId, setOpenMenuId] = useState(null); // har staff ka menu control karne ke liye
 
   // Agar bahar click kare to menu close ho
- // Staff.js me
-useEffect(() => {
-  function handleClickOutside(event) {
-    // Agar openMenuId set hai aur click kisi bhi menu ke andar nahi hua
-    if (
-      openMenuId !== null &&
-      !event.target.closest(".menu-container") && // menu ke andar click check
-      !event.target.closest(".menu-toggle") // 3 dots button ke andar click check
-    ) {
-      setOpenMenuId(null); // Close menu
+  // Staff.js me
+  useEffect(() => {
+    function handleClickOutside(event) {
+      // Agar openMenuId set hai aur click kisi bhi menu ke andar nahi hua
+      if (
+        openMenuId !== null &&
+        !event.target.closest(".menu-container") && // menu ke andar click check
+        !event.target.closest(".menu-toggle") // 3 dots button ke andar click check
+      ) {
+        setOpenMenuId(null); // Close menu
+      }
     }
-  }
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-  };
-}, [openMenuId]);
-
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [openMenuId]);
 
   const [formData, setFormData] = useState({
     employee_name: "",
@@ -71,17 +72,20 @@ useEffect(() => {
       const res = await axios.get("/branches", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setBranches(
-        res.data.map((branch) => ({
-          id: branch.id,
-          branch_name: branch.branch_name,
-        }))
-      );
+      const branchList = res.data.map((branch) => ({
+        id: branch.id,
+        branch_name: branch.branch_name,
+      }));
+      setBranches(branchList);
+
+      // ✅ Set default branch (first one)
+      if (branchList.length > 0) {
+        setSelectedBranch(branchList[0].id);
+      }
     } catch (error) {
       console.error("Error fetching branches:", error);
     }
   };
-
   const fetchStaff = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -95,8 +99,8 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    fetchStaff();
     fetchBranches();
+    fetchStaff();
   }, []);
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -144,11 +148,16 @@ useEffect(() => {
 
   const filteredStaff = staffList.filter(
     (staff) =>
-      (staff.employee_name || "")
+      (selectedBranch ? staff.branch_id === parseInt(selectedBranch) : true) &&
+      ((staff.employee_name || "")
         .toLowerCase()
         .includes(search.toLowerCase()) ||
-      (staff.designation || "").toLowerCase().includes(search.toLowerCase()) ||
-      (staff.employee_code || "").toLowerCase().includes(search.toLowerCase())
+        (staff.designation || "")
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        (staff.employee_code || "")
+          .toLowerCase()
+          .includes(search.toLowerCase()))
   );
 
   const handleEditClick = (staff) => {
@@ -220,6 +229,17 @@ useEffect(() => {
     <SAAdminLayout>
       <div className="px-5">
         {/* Header */}
+         <select
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+            className="border p-2 rounded"
+          >
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.branch_name}
+              </option>
+            ))}
+          </select>
         <div className="flex items-center justify-between mb-6">
           {/* Left: Heading */}
           <h1 className="text-[34px] font-nunito">
@@ -314,15 +334,14 @@ useEffect(() => {
                     onClick={() =>
                       setOpenMenuId(openMenuId === staff.id ? null : staff.id)
                     }
-                      className="menu-toggle p-2 hover:bg-gray-100 rounded-full"
-
+                    className="menu-toggle p-2 hover:bg-gray-100 rounded-full"
                   >
                     <HiDotsVertical size={20} />
                   </button>
 
                   {openMenuId === staff.id && (
                     <div
-    className="menu-container absolute right-0 mt-2 bg-white shadow-lg rounded-lg w-40 py-2 z-50"
+                      className="menu-container absolute right-0 mt-2 bg-white shadow-lg rounded-lg w-40 py-2 z-50"
                       onClick={(e) => e.stopPropagation()} // 👈 yeh important hai
                     >
                       <button
@@ -440,7 +459,6 @@ useEffect(() => {
                   className="border p-2 rounded"
                   required
                 />{" "}
-  
                 <input
                   name="designation"
                   value={formData.designation}

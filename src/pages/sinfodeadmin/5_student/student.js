@@ -50,13 +50,20 @@ function AddStudent() {
       })
       .catch((err) => console.error("Error fetching branches:", err));
 
-    // Fetch Batches
-    axios
-      .get("/batches/show", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then((res) => setBatches(res.data || []))
-      .catch((err) => console.error("Error fetching batches:", err));
+  // Fetch Batches
+axios
+  .get("/batches/show", {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  .then((res) => {
+    console.log("Batches API Response:", res.data); // 👀 Debug this
+    const batchList = Array.isArray(res.data)
+      ? res.data
+      : res.data.data || res.data.batches || [];
+
+    setBatches(batchList);
+  })
+  .catch((err) => console.error("Error fetching batches:", err));
   }, []);
 
   const handleSubmit = async (e) => {

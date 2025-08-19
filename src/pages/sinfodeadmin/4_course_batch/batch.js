@@ -5,12 +5,14 @@ function Batch() {
   const [formData, setFormData] = useState({
     batch_name: "",   // backend expects batch_name
     course_id: "",    // backend expects course_id
+    branch_id: "",    // ✅ added branch_id
     start_date: "",
     end_date: "",
     student_limit: "",
   });
   const [loading, setLoading] = useState(false);
   const [courses, setCourses] = useState([]);
+  const [branches, setBranches] = useState([]); // ✅ state for branches
 
   // Fetch all courses
   const fetchCourses = async () => {
@@ -24,9 +26,30 @@ function Batch() {
       console.error("Error fetching courses:", error);
     }
   };
+   // Fetch all branches
+  const fetchBranches = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/branches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const branchData = res.data.map((branch) => ({
+        id: branch.id,
+        branchName: branch.branch_name,
+      }));
+
+      setBranches(branchData);
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+    }
+  };
+
 
   useEffect(() => {
     fetchCourses();
+        fetchBranches();
+
   }, []);
 
   // Input change handler
@@ -47,6 +70,8 @@ function Batch() {
       setFormData({
         batch_name: "",
         course_id: "",
+                branch_id: "",  // ✅ reset branch also
+
         start_date: "",
         end_date: "",
         student_limit: "",
@@ -82,7 +107,30 @@ function Batch() {
               className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 p-2"
             />
           </div>
-
+  {/* Branch Dropdown ✅ */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600">
+              Branch
+            </label>
+            {branches.length === 0 ? (
+              <p className="text-gray-500 text-sm">No branches available</p>
+            ) : (
+              <select
+                name="branch_id"
+                value={formData.branch_id}
+                onChange={handleChange}
+                required
+                className="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-blue-500 p-2"
+              >
+                <option value="">-- Select Branch --</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.branchName}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
           {/* Course Dropdown */}
           <div>
             <label className="block text-sm font-medium text-gray-600">

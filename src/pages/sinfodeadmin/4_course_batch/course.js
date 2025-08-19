@@ -298,6 +298,8 @@ function AddCourse() {
 function AllCourse() {
   const [courses, setCourses] = useState([]);
   const [selectedCourse, setSelectedCourse] = useState(null);
+    const [filteredCourses, setFilteredCourses] = useState([]); // ✅ branch wise filtered
+
   const [modalType, setModalType] = useState(""); // "view" | "edit" | "delete"
   const [formData, setFormData] = useState({}); // for editing
   const [courseName, setCourseName] = useState("");
@@ -314,18 +316,40 @@ function AllCourse() {
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
   // Fetch all courses
+  // Fetch all courses
   const fetchCourses = async () => {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.get("/courses/index", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCourses(res.data || []);
+      const data = res.data || [];
+
+      setCourses(data);
+
+      // ✅ unique branch list nikalna
+      const uniqueBranches = Array.from(
+        new Map(data.map((c) => [c.branch.id, c.branch])).values()
+      );
+      setBranches(uniqueBranches);
+
+      // by default sab dikhaye
+      setFilteredCourses(data);
     } catch (error) {
       console.error("Error fetching courses:", error);
     }
   };
 
+  // ✅ branch change hone par filter
+  useEffect(() => {
+    if (selectedBranch === "") {
+      setFilteredCourses(courses); // all show
+    } else {
+      setFilteredCourses(
+        courses.filter((c) => String(c.branch_id) === String(selectedBranch))
+      );
+    }
+  }, [selectedBranch, courses]);
   // Fetch single course for view / edit
   const fetchSingleCourse = async (id, type) => {
     try {
@@ -341,21 +365,6 @@ function AllCourse() {
     }
   };
 
-  // Update course
-  // const handleUpdate = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token");
-  //     await axios.put(`/courses/${selectedCourse.id}/update`, formData, {
-  //       headers: { Authorization: `Bearer ${token}` },
-  //     });
-  //     alert("Course updated successfully!");
-  //     setModalType("");
-  //     fetchCourses();
-  //   } catch (error) {
-  //     console.error("Update failed:", error);
-  //     alert("Update failed!");
-  //   }
-  // };
 
   // Update course
 const handleUpdate = async () => {
@@ -415,12 +424,27 @@ const handleUpdate = async () => {
       <h1 className="text-[30px] mb-6 font-semibold font-nunito">
         All Course Management
       </h1>
+ <div className="mb-6">
+        <label className="mr-3 font-semibold">Select Branch:</label>
+        <select
+          value={selectedBranch}
+          onChange={(e) => setSelectedBranch(e.target.value)}
+          className="border px-3 py-2 rounded"
+        >
+          <option value="">All Branches</option>
+          {branches.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.branch_name}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {courses.length === 0 ? (
+      {filteredCourses.length === 0 ? (
         <p className="text-gray-600">No courses available</p>
       ) : (
         <div className="flex flex-wrap gap-6">
-          {courses.map((course) => (
+          {filteredCourses.map((course) => (
             <div
               key={course.id}
               className="bg-white rounded-xl shadow-md p-6 w-[500px] flex flex-col justify-between"
