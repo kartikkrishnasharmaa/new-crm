@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
-import { HiEmojiHappy, HiMenu, HiX } from "react-icons/hi";
+import { HiMenu, HiX, HiBell } from "react-icons/hi"; // Added Bell icon
 import { Link } from "react-router-dom";
-// import AppointmentStatusModal from "./Helpmodel"; // Import the existing modal
 
 const Managerheader = ({ toggleSidebar }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false); // State for modal visibility
-  const [status, setStatus] = useState("Pending"); // Default status is Pending
   const dropdownRef = useRef(null);
-
   const selectedBranch = useSelector((state) => state.branch.selectedBranch);
-  // Function to dynamically generate menu link with branchId
+
   const getBranchLink = (baseLink) => {
     return selectedBranch ? `${baseLink}?branchId=${selectedBranch}` : baseLink;
   };
+
   const handleOutsideClick = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
       setIsOpen(false);
@@ -32,82 +29,74 @@ const Managerheader = ({ toggleSidebar }) => {
   }, [isOpen]);
 
   return (
-    <header className="bg-white flex items-center justify-between p-4 shadow-md relative z-50">
-      <div className="flex items-center gap-4 md:hidden">
-        <button
-          className="text-black focus:outline-none"
-          onClick={toggleSidebar}
-        >
-          <HiMenu size={28} />
-        </button>
-        <button
-          className="text-black focus:outline-none"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <HiX size={28} /> : <HiMenu size={28} />}
-        </button>
-      </div>
+    <header className="bg-[#F4F9FD] flex items-center justify-between relative z-50">
 
-      <div className="flex-1 flex justify-center md:justify-start">
-        <img src={"https://www.sinfode.com/wp-content/uploads/2022/12/digital-marketing-institute-in-sikar.webp"} alt="logo" className="w-42 h-16" />
-      </div>
-
-      <nav className="hidden mr-10 text-black md:flex space-x-6 text-lg font-semibold mx-auto">
+      {/* Desktop Navigation */}
+      <nav className="hidden mr-10 mt-2 rounded-2xl text-black md:flex items-center space-x-6 text-lg font-semibold mx-auto">
+        {/* Bell Icon Instead of Dashboard */}
         <Link
-          to={getBranchLink("/sinfodemanager/dashboard")}
-          className="hover:text-blue-300"
+          to={getBranchLink("/sinfodeadmin/dashboard")}
+          className="hover:text-blue-500 bg-white p-3 rounded-lg"
         >
-          Dashboard
+          <HiBell size={24} />
         </Link>
-  
-        <div ref={dropdownRef}>
-        <div
-          onClick={() => setIsOpen(!isOpen)}
-          className="flex"
-        >
-          Account
-        </div>
-        {isOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg overflow-hidden animate-fadeIn">
-            <Link to="/sinfodemanager/profile">
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100">
-                Profile
-              </button>
-            </Link>
-            <button
-              className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("user");
-                window.location.href = "/sinfode-manager/login";
-              }}
-            >
-              Logout
-            </button>
+
+        {/* Account with Profile Image */}
+        <div ref={dropdownRef} className="relative">
+          <div
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex bg-white items-center gap-3 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+          >
+            {/* Profile Image Circle */}
+            <div className="w-8 h-8 rounded-full overflow-hidden border border-gray-300">
+              <img
+                src="https://sipl.ind.in/wp-content/uploads/2022/07/dummy-user.png"
+                alt="User"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <span>Manager</span>
           </div>
-        )}
-      </div>
-         </nav>
 
-      {/* User Dropdown */}
-     
+          {/* Dropdown Menu */}
+          {isOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded shadow-lg overflow-hidden animate-fadeIn">
+              <Link to="/sinfodemanager/profile">
+                <button className="w-full text-left px-4 py-2 hover:bg-gray-100">
+                  Profile
+                </button>
+              </Link>
+              <button
+                className="w-full text-left px-4 py-2 text-red-500 hover:bg-gray-100"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("user");
+                  window.location.href = "/sinfode-manager/login";
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
 
-      {/* Mobile Menu Positioned Below Header */}
+      {/* Mobile Dropdown Menu */}
       {menuOpen && (
         <nav className="absolute top-24 left-0 w-full bg-white shadow-md flex flex-col md:hidden py-4 space-y-4 text-center z-40">
-          <Link to={"/sinfodemanager/dashboard"} className="hover:text-blue-600">
+          <Link to={"/staff/dashboard"} className="hover:text-blue-600">
             Dashboard
           </Link>
-          <Link to={"/sinfodemanager/create-booking"} className="hover:text-blue-600">
+          <Link
+            to={"/staff/create-booking"}
+            className="hover:text-blue-600"
+          >
             Bookings
           </Link>
         </nav>
       )}
-
     </header>
   );
 };
 
 export default Managerheader;
-
-

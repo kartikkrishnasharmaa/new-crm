@@ -6,19 +6,11 @@ import {
   FaTools,
   FaChevronDown,
   FaChevronUp,
-  FaGift,
-  FaUsers,
-  FaWallet,
-  FaUserTie,
-  FaMoneyBillWave,
   FaHome,
-  FaReceipt,
-  FaFileAlt,
-  FaUserFriends,
-  FaLayerGroup,
+  FaUsers,
 } from "react-icons/fa";
 
-const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
+const ManagerSidebar = ({ isSidebarOpen, toggleSidebar }) => {
   const [openMenu, setOpenMenu] = useState(null);
   const selectedBranch = useSelector((state) => state.branch.selectedBranch);
 
@@ -44,87 +36,69 @@ const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
         : "/sinfodemanager/dashboard",
     },
     {
-      name: "Branch Management",
+      name: "Branch",
       icon: <FaHome />,
-       subMenu: [
-        { name: "All Branch", link: "/sinfodemanager/branch" },
-      ],
+      link: selectedBranch
+        ? `/sinfodemanager/branch?branchId=${selectedBranch}`
+        : "/sinfodemanager/branch",
     },
     {
-      name:"Staff Management",
+      name: "Employees",
       icon: <FaUsers />,
-      subMenu:[
-        {name:"All Staff" ,link:"/sinfodemanager/staff"},
-      ]
+      link: selectedBranch
+        ? `/sinfodemanager/employees?branchId=${selectedBranch}`
+        : "/sinfodemanager/employees",
     },
     {
-      name: "Student Management",
+      name: "Students",
       icon: <FaUsers />,
-      subMenu: [
-        { name: "All Student", link: "/sinfodemanager/students" },
-        { name: "Admission Process", link: "/sinfodemanager/student-management/admission" },
-        { name:"ID Card", link: "/sinfodemanager/student-management/id-card" },
-      ],
+      link: "/sinfodemanager",
     },
     {
-      name: "Courses & Batches",
-      icon: <FaLayerGroup />,
-       subMenu: [
-        { name: "Courses", link: "/sinfodemanager/courses" },
-        { name: "Batches", link: "/sinfodemanager/student-management/admission" },
-        { name:"Assign Student", link: "/sinfodemanager/student-management/id-card" },
-      ],    },
-    {
-      name: "Fee Management",
-      icon: <FaMoneyBillWave />,
-      link: "/sinfodemanager/fees",
+      name: "Courses",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
     },
-    // {
-    //   name: "Attendance",
-    //   icon: <FaUserFriends />,
-    //   link: "/sinfodemanager/attendance",
-    // },
-    // {
-    //   name: "Lead Management",
-    //   icon: <FaUserTie />,
-    //   link: "/sinfodemanager/leads",
-    // },
-    // {
-    //   name: "Expense Management",
-    //   icon: <FaReceipt />,
-    //   link: "/sinfodemanager/expenses",
-    // },
-    // {
-    //   name: "Salary Management",
-    //   icon: <FaWallet />,
-    //   link: "/sinfodemanager/salary",
-    // },
-    // {
-    //   name: "Invoice Management",
-    //   icon: <FaFileAlt />,
-    //   link: "/sinfodemanager/invoice",
-    // },
-    // {
-    //   name: "Access Management",
-    //   icon: <FaWallet />,
-    //   link: "/sinfodemanager/access",
-    // },
-    // {
-    //   name: "Campaigns",
-    //   icon: <FaGift />,
-    //   link: "/sinfodemanager/campaign",
-    // },
-    // {
-    //   name: "Reports & Analytics",
-    //   icon: <FaFileAlt />,
-    //   subMenu: [
-    //     { name: "Fee Report", link: "/sinfodemanager/reports" },
-    //     {
-    //       name: "Attendance Report",
-    //       link: "/sinfodemanager/reports-analytics/attendance",
-    //     },
-    //   ],
-    // },
+    {
+      name: "Fees",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Attendence",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Lead",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Expense",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Salary",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Invoice",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Campaign",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
+    {
+      name: "Reports",
+      icon: <FaUsers />,
+      link: "/sinfodemanager",
+    },
     {
       name: "Settings",
       icon: <FaTools />,
@@ -134,23 +108,32 @@ const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
 
   return (
     <aside
-      className={`fixed bg-white inset-y-0 text-black left-0 transform ${
+      className={`bg-white rounded-[24px] ml-3 inset-y-0 left-0 transform ${
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } md:translate-x-0 transition-transform duration-300 ease-in-out w-80 p-4 z-30 shadow-lg md:relative overflow-y-auto max-h-screen`}
+      } md:translate-x-0 transition-transform duration-300 ease-in-out w-[200px] p-4 z-30 shadow-lg md:relative overflow-y-auto max-h-screen`}
     >
+      <div className="flex-1 flex justify-center md:justify-start">
+        <img
+          src={
+            "https://www.sinfode.com/wp-content/uploads/2022/12/digital-marketing-institute-in-sikar.webp"
+          }
+          alt="logo"
+          className="w-34 h-10"
+        />
+      </div>
       <nav>
-        <ul className="space-y-4">
+        <ul className="space-y-4 mt-4">
           {menuItems.map((item, index) => (
             <li key={index}>
               {item.subMenu ? (
                 <>
                   <div
-                    className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-gray-300 rounded-lg"
+                    className="flex items-center text-gray-500 justify-between py-3 px-4 text-[15px] cursor-pointer rounded-4xl transition-all duration-200 ease-in-out"
                     onClick={() => toggleSubCategory(item.name)}
                   >
                     <div className="flex items-center gap-4">
                       {item.icon}
-                      <span className="text-lg font-medium">{item.name}</span>
+                      <span className="text-[15px]">{item.name}</span>
                     </div>
                     {openMenu === item.name ? (
                       <FaChevronUp />
@@ -158,6 +141,7 @@ const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
                       <FaChevronDown />
                     )}
                   </div>
+
                   {openMenu === item.name && (
                     <ul className="pl-8 space-y-2">
                       {item.subMenu.map((subItem, subIndex) => (
@@ -165,24 +149,17 @@ const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
                           <NavLink
                             to={subItem.link || "#"}
                             className={({ isActive }) =>
-                              `flex items-center mt-3 gap-4 py-2 px-4 rounded-lg transition-all duration-200 ease-in-out ${
+                              `flex items-center mt-3 gap-4 py-2 px-4 rounded-lg transition-all duration-200 ease-in-out text-[15px] ${
                                 isActive
-                                  ? "bg-gray-300 text-white shadow-lg"
+                                  ? "bg-sky-100 text-blue-600 shadow-lg"
                                   : subItem.link && subItem.link !== "/"
-                                  ? "hover:bg-gray-300 hover:text-black"
+                                  ? "bg-white text-gray-500"
                                   : "opacity-50 cursor-not-allowed"
                               }`
                             }
                             onClick={(e) => handleNavigation(subItem.link, e)}
                           >
-                            <span className="text-sm font-medium">
-                              {subItem.name}
-                            </span>
-                            {(!subItem.link || subItem.link === "/") && (
-                              <span className="text-xs ml-auto bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                                Coming Soon
-                              </span>
-                            )}
+                            <span className="text-[15px]">{subItem.name}</span>
                           </NavLink>
                         </li>
                       ))}
@@ -193,18 +170,18 @@ const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
                 <NavLink
                   to={item.link || "#"}
                   className={({ isActive }) =>
-                    `flex items-center gap-4 py-3 px-4 rounded-lg transition-all duration-200 ease-in-out ${
+                    `flex items-center gap-4 py-3 px-4 text-[15px] rounded-lg transition-all duration-200 ease-in-out ${
                       isActive
-                        ? "bg-gray-600 border-1 border-white text-white shadow-2xl"
+                        ? "bg-sky-100 text-blue-600 border-1 border-white"
                         : item.link && item.link !== "/"
-                        ? "hover:bg-gray-800 hover:text-white"
+                        ? "text-gray-500"
                         : "opacity-50 cursor-not-allowed"
                     }`
                   }
                   onClick={(e) => handleNavigation(item.link, e)}
                 >
                   {item.icon}
-                  <span className="text-lg font-medium">{item.name}</span>
+                  <span className="text-[15px]">{item.name}</span>
                   {(!item.link || item.link === "/") && (
                     <span className="text-xs ml-auto bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
                       Coming Soon
@@ -220,4 +197,4 @@ const Managersidebar = ({ isSidebarOpen, toggleSidebar }) => {
   );
 };
 
-export default Managersidebar;
+export default ManagerSidebar;

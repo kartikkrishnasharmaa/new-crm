@@ -30,21 +30,6 @@ const Adminheader = ({ toggleSidebar }) => {
 
   return (
     <header className="bg-[#F4F9FD] flex items-center justify-between relative z-50">
-      {/* Mobile Menu Toggle */}
-      {/* <div className="flex mt-2 items-center gap-4 md:hidden">
-        <button
-          className="text-black focus:outline-none"
-          onClick={toggleSidebar}
-        >
-          <HiMenu size={28} />
-        </button>
-        <button
-          className="text-black focus:outline-none"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <HiX size={28} /> : <HiMenu size={28} />}
-        </button>
-      </div> */}
 
       {/* Desktop Navigation */}
       <nav className="hidden mr-10 mt-2 rounded-2xl text-black md:flex items-center space-x-6 text-lg font-semibold mx-auto">

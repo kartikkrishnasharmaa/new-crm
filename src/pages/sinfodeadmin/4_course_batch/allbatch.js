@@ -21,46 +21,61 @@ function Allbatch() {
     start_date: "",
     end_date: "",
   });
-const fetchBatches = async () => {
-  try {
-    const token = localStorage.getItem("token");
-    const res = await axios.get("/batches/show", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const fetchBatches = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/batches/show", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    // ✅ Ensure it's always an array
-    const batchList = Array.isArray(res.data)
-      ? res.data
-      : res.data.data || [];
+      // ✅ Ensure it's always an array
+      const batchList = Array.isArray(res.data)
+        ? res.data
+        : res.data.data || [];
 
-    setBatches(batchList);
-    setFilteredBatches(batchList);
+      setBatches(batchList);
+      setFilteredBatches(batchList);
 
-    // ✅ extract unique branches
-    const uniqueBranches = [];
-    const branchMap = {};
-    batchList.forEach((batch) => {
-      if (batch.course?.branch_id && !branchMap[batch.course.branch_id]) {
-        branchMap[batch.course.branch_id] = true;
-        uniqueBranches.push({
-          id: batch.course.branch_id,
-          name: batch.course.course_name + " - Branch " + batch.course.branch_id,
-        });
-      }
-    });
-    setBranches(uniqueBranches);
-  } catch (error) {
-    console.error("Error fetching batches:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+      // ✅ extract unique branches
+      const uniqueBranches = [];
+      const branchMap = {};
+      batchList.forEach((batch) => {
+        if (batch.course?.branch_id && !branchMap[batch.course.branch_id]) {
+          branchMap[batch.course.branch_id] = true;
+          uniqueBranches.push({
+            id: batch.course.branch_id,
+            name:
+              batch.course.course_name + " - Branch " + batch.course.branch_id,
+          });
+        }
+      });
+      setBranches(uniqueBranches);
+    } catch (error) {
+      console.error("Error fetching batches:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const fetchBranches = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.get("/branches", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setBranches(res.data); // 👈 direct response set kar do
+    } catch (error) {
+      console.error("Error fetching branches:", error);
+    }
+  };
 
   useEffect(() => {
     fetchBatches();
+    fetchBranches();
   }, []);
   // filter batches by branch
+  // ✅ Filter batches by selected branch
   useEffect(() => {
     if (selectedBranch) {
       const filtered = batches.filter(
@@ -71,8 +86,6 @@ const fetchBatches = async () => {
       setFilteredBatches(batches);
     }
   }, [selectedBranch, batches]);
-
-  // ============ ACTION HANDLERS ============
 
   // View single batch
   const handleView = async (id) => {
@@ -151,19 +164,22 @@ const fetchBatches = async () => {
         All Batches
       </h1>
       {/* Branch Dropdown */}
+      {/* Branch Dropdown */}
       <div className="mb-6">
         <select
           value={selectedBranch}
           onChange={(e) => setSelectedBranch(e.target.value)}
+          className="border p-2 rounded"
         >
           <option value="">Select Branch</option>
           {branches.map((branch) => (
             <option key={branch.id} value={branch.id}>
-              {branch.course_id} {/* <-- yaha name dikhega */}
+              {branch.branch_name} {/* ✅ ab directly API ka naam dikhega */}
             </option>
           ))}
         </select>
       </div>
+
       {loading ? (
         <p>Loading batches...</p>
       ) : filteredBatches.length === 0 ? (

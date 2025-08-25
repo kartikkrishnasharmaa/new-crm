@@ -19,25 +19,37 @@ const Login = () => {
   };
  
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess(false);
- 
-    try {
-      const response = await axios.post('/login', formData);
-      const { token, salonAdmin } = response.data;
-      // console.log('Login Successful:', response.data);
-      localStorage.setItem("token", token);
-      localStorage.setItem("salonAdmin", JSON.stringify(salonAdmin));
-      setSuccess(true);
- 
+  e.preventDefault();
+  setError('');
+  setSuccess(false);
+
+  try {
+    const response = await axios.post('/login', formData);
+    const { token, user } = response.data;
+    console.log('Login Successful:', response.data);
+
+    // save token + user
+    localStorage.setItem("token", token);
+    localStorage.setItem("user", JSON.stringify(user));
+
+    setSuccess(true);
+
+    // role ke hisaab se redirect karna
+    if (user.role === "admin") {
+      navigate('/sinfodeadmin/dashboard');
+    } else if (user.role === "branch_manager") {
       navigate('/sinfodemanager/dashboard');
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Invalid credentials';
-      setError(errorMessage);
-      toast.error(errorMessage);
+    } else {
+      navigate('/'); // default
     }
-  };
+
+  } catch (err) {
+    const errorMessage = err.response?.data?.message || 'Invalid credentials';
+    setError(errorMessage);
+    toast.error(errorMessage);
+  }
+};
+
  
   return (
     <div className="flex min-h-screen">

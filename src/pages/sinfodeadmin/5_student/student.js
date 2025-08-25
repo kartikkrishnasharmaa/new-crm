@@ -3,8 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "../../../api/axiosConfig";
 import Allstudents from "./allstudents";
 import Idcard from "./idcard";
-
-// -------------------- Add Student --------------------
+import AcademicProgress from "./academic";
 function AddStudent() {
   const [fullName, setFullName] = useState("");
   const [dob, setDob] = useState("");
@@ -15,7 +14,7 @@ function AddStudent() {
   const [photo, setPhoto] = useState(null);
   const [guardianName, setGuardianName] = useState("");
   const [guardianContact, setGuardianContact] = useState("");
-  // ✅ New fields required by backend
+
   const [admissionNumber, setAdmissionNumber] = useState("");
   const [courseId, setCourseId] = useState("");
   const [batchStart, setBatchStart] = useState("");
@@ -24,53 +23,87 @@ function AddStudent() {
   const [branchId, setBranchId] = useState("");
   const [batchId, setBatchId] = useState("");
 
-  // Dropdown data
   const [courses, setCourses] = useState([]);
   const [branches, setBranches] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [coupons, setCoupons] = useState([]);
+
+  const [courseFee, setCourseFee] = useState(0);
+  const [finalFee, setFinalFee] = useState(0);
+  const [selectedCoupon, setSelectedCoupon] = useState("");
+
   useEffect(() => {
     const token = localStorage.getItem("token");
 
-    // Fetch Courses
     axios
       .get("/courses/index", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => setCourses(res.data || []))
-      .catch((err) => console.error("Error fetching courses:", err));
+      .then((res) => setCourses(res.data || []));
 
-    // Fetch Branches
     axios
       .get("/branches", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      .then((res) => {
-        console.log("Branches API Response:", res.data); // 👀 Debug
-        setBranches(res.data || []); // 🔥 Directly use res.data
+      .then((res) => setBranches(res.data || []));
+
+    axios
+      .get("/batches/show", {
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .catch((err) => console.error("Error fetching branches:", err));
+      .then((res) => {
+        const batchList = Array.isArray(res.data)
+          ? res.data
+          : res.data.data || [];
+        setBatches(batchList);
+      });
 
-  // Fetch Batches
-axios
-  .get("/batches/show", {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  .then((res) => {
-    console.log("Batches API Response:", res.data); // 👀 Debug this
-    const batchList = Array.isArray(res.data)
-      ? res.data
-      : res.data.data || res.data.batches || [];
-
-    setBatches(batchList);
-  })
-  .catch((err) => console.error("Error fetching batches:", err));
+    axios
+      .get("/coupons", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setCoupons(res.data || []));
   }, []);
+
+  useEffect(() => {
+    if (courseId) {
+      const selectedCourse = courses.find((c) => c.id == courseId);
+      if (selectedCourse) {
+        const fee = parseFloat(
+          selectedCourse.discounted_price || selectedCourse.actual_price
+        );
+        setCourseFee(fee);
+        setFinalFee(fee);
+      }
+    }
+  }, [courseId]);
+
+  const handleApplyCoupon = () => {
+    if (!selectedCoupon) return;
+
+    const coupon = coupons.find((c) => c.id == selectedCoupon);
+    if (!coupon) return;
+
+    let newFee = courseFee;
+
+    if (coupon.discount_type === "percentage") {
+      newFee =
+        courseFee - (courseFee * parseFloat(coupon.discount_value)) / 100;
+    } else if (coupon.discount_type === "fixed") {
+      newFee = courseFee - parseFloat(coupon.discount_value);
+    }
+
+    if (newFee < 0) newFee = 0;
+    setFinalFee(newFee);
+    alert(`Coupon Applied! Final Fee: ₹${newFee}`);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const token = localStorage.getItem("token");
       const formData = new FormData();
+
       formData.append("full_name", fullName);
       formData.append("dob", dob);
       formData.append("gender", gender);
@@ -80,16 +113,16 @@ axios
       if (photo) formData.append("photo", photo);
       formData.append("guardian_name", guardianName);
       formData.append("guardian_contact", guardianContact);
-
-      // ✅ Backend required fields
       formData.append("admission_number", admissionNumber);
       formData.append("course_id", courseId);
-      formData.append("batch_id", batchId); // sending batch id
+      formData.append("batch_id", batchId);
       formData.append("admission_date", admissionDate);
       formData.append("branch_id", branchId);
-      // 👇 ye dono add karo
       formData.append("batch_start_time", batchStart);
       formData.append("batch_end_time", batchEnd);
+
+      formData.append("final_fee", finalFee);
+      formData.append("coupon_id", selectedCoupon);
 
       await axios.post("/students/create", formData, {
         headers: {
@@ -99,22 +132,6 @@ axios
       });
 
       alert("✅ Student created successfully!");
-
-      // Reset form
-      setFullName("");
-      setDob("");
-      setGender("");
-      setContactNumber("");
-      setEmail("");
-      setAddress("");
-      setPhoto(null);
-      setGuardianName("");
-      setGuardianContact("");
-      setAdmissionNumber("");
-      setCourseId("");
-      setBatchId("");
-      setAdmissionDate("");
-      setBranchId("");
     } catch (error) {
       console.error("Error creating student:", error.response?.data || error);
       alert("❌ Failed to create student");
@@ -123,9 +140,8 @@ axios
 
   return (
     <div className="p-6 w-full bg-[#F4F9FD]">
-      <h1 className="text-[30px] mb-4 font-semibold font-nunito">
-        Add Student
-      </h1>
+      <h1 className="text-[30px] mb-4 font-semibold">Add Student</h1>
+
       <form className="space-y-6" onSubmit={handleSubmit}>
         {/* Basic Info */}
         <div className="bg-white shadow-md rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -287,9 +303,7 @@ axios
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Select Course *
-            </label>
+            <label>Course *</label>
             <select
               value={courseId}
               onChange={(e) => setCourseId(e.target.value)}
@@ -298,7 +312,8 @@ axios
               <option value="">Select</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
-                  {course.course_name}
+                  {course.course_name} (₹
+                  {course.discounted_price || course.actual_price})
                 </option>
               ))}
             </select>
@@ -336,6 +351,44 @@ axios
               ))}
             </select>
           </div>
+          {/* Coupon */}
+          <div>
+            <label>Apply Coupon</label>
+            <div className="flex gap-2">
+              <select
+                value={selectedCoupon}
+                onChange={(e) => setSelectedCoupon(e.target.value)}
+                className="border rounded-lg px-3 py-2 flex-1"
+              >
+                <option value="">-- Select Coupon --</option>
+                {coupons
+                  .filter((c) => c.course_id == courseId) // show only course related coupons
+                  .map((coupon) => (
+                    <option key={coupon.id} value={coupon.id}>
+                      {coupon.code} ({coupon.discount_type} -{" "}
+                      {coupon.discount_value})
+                    </option>
+                  ))}
+              </select>
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                className="bg-green-500 text-white px-3 py-2 rounded-lg"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+          <div className="col-span-2">
+            <p className="text-lg font-semibold">
+              Course Fee: ₹{courseFee}
+              {selectedCoupon && (
+                <span className="ml-4">
+                  Final Fee: <span className="text-blue-600">₹{finalFee}</span>
+                </span>
+              )}
+            </p>
+          </div>
         </div>
 
         <div className="flex justify-end">
@@ -346,12 +399,11 @@ axios
             ✨ Add Student
           </button>
         </div>
-      </form>{" "}
+      </form>
     </div>
   );
 }
 
-// -------------------- Parent Component --------------------
 export default function Student() {
   const [activeTab, setActiveTab] = useState("addStudent");
 
@@ -381,7 +433,7 @@ export default function Student() {
           >
             📋 All Students
           </button>
-           <button
+          <button
             onClick={() => setActiveTab("idCard")}
             className={`block w-full text-left px-4 py-5 rounded-lg ${
               activeTab === "idCard"
@@ -391,13 +443,24 @@ export default function Student() {
           >
             📋 ID Card
           </button>
+          <button
+            onClick={() => setActiveTab("academic")}
+            className={`block w-full text-left px-4 py-5 rounded-lg ${
+              activeTab === "academic"
+                ? "bg-blue-100 text-black"
+                : "hover:bg-blue-100 text-black"
+            }`}
+          >
+            📊 Academic Progress
+          </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 rounded-lg p-6 overflow-y-auto">
           {activeTab === "addStudent" && <AddStudent />}
           {activeTab === "studentList" && <Allstudents />}
-          {activeTab === "idCard" && <Idcard/>}
+          {activeTab === "idCard" && <Idcard />}
+          {activeTab === "academic" && <AcademicProgress />}
         </div>
       </div>
     </SAAdminLayout>

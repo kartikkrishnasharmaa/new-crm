@@ -1,161 +1,168 @@
 import React, { useState, useEffect } from "react";
 import axios from "../../../api/axiosConfig";
+import "./StudentIDCardGenerator.css"; // We'll create this CSS file
 
 function StudentIDCardGenerator() {
   const [branches, setBranches] = useState([]);
   const [courses, setCourses] = useState([]);
   const [students, setStudents] = useState([]);
-
   const [selectedBranch, setSelectedBranch] = useState("");
   const [selectedCourse, setSelectedCourse] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
-  // 🔹 Fetch Branches
-  const fetchBranches = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get("/branches", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const branchData = res.data.map((branch) => ({
-        id: branch.id,
-        name: branch.branch_name,
-      }));
-
-      setBranches(branchData);
-    } catch (error) {
-      console.error("Error fetching branches:", error);
-    }
-  };
-
-  // 🔹 Fetch Courses based on Branch
-  const fetchCourses = async (branchId) => {
-    try {
-      const token = localStorage.getItem("token");
-      const res = await axios.get(`/courses/index?branch_id=${branchId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCourses(res.data || []);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-    }
-  };
-
-  // 🔹 Fetch Students based on Branch + Course
-  const fetchStudents = async (branchId, courseId) => {
-    try {
-      const token = localStorage.getItem("token");
-
-      // ✅ Agar backend filter support karta hai
-      const res = await axios.get(
-        `/students/show?branch_id=${branchId}&course_id=${courseId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      let data = res.data || [];
-
-      // ✅ Agar backend filter support nahi karta, to frontend pe filter
-      if (
-        !res.data.some(
-          (s) =>
-            s.branch_id === parseInt(branchId) &&
-            s.course_id === parseInt(courseId)
-        )
-      ) {
-        data = data.filter(
-          (s) =>
-            s.branch_id === parseInt(branchId) &&
-            s.course_id === parseInt(courseId)
-        );
-      }
-
-      setStudents(data);
-    } catch (error) {
-      console.error("Error fetching students:", error);
-    }
-  };
-
-  // 🔹 On Mount
+  // Fetch all branches
   useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/branches", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setBranches(res.data || []);
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+      }
+    };
     fetchBranches();
   }, []);
 
-  // 🔹 Handlers
-  const handleBranchChange = (e) => {
-    const branchId = e.target.value;
-    setSelectedBranch(branchId);
-    setSelectedCourse("");
-    setCourses([]);
-    setStudents([]);
-    if (branchId) fetchCourses(branchId);
-  };
+  // Fetch all courses
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get("/courses/index", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCourses(res.data || []);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      }
+    };
+    fetchCourses();
+  }, []);
 
-  const handleCourseChange = (e) => {
-    const courseId = e.target.value;
-    setSelectedCourse(courseId);
-    setStudents([]);
-    if (courseId && selectedBranch) fetchStudents(selectedBranch, courseId);
-  };
+  // Fetch students when course changes
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!selectedCourse) return;
 
-  // 🔹 Generate ID Card
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.get(`/courses/${selectedCourse}/show`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        setStudents(res.data.students || []);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      }
+    };
+
+    fetchStudents();
+  }, [selectedCourse]);
+
+  // Filter students by branch
+  const filteredStudents = students.filter(
+    (s) => !selectedBranch || s.branch_id?.toString() === selectedBranch
+  );
+
+  // Handle Generate ID Card
   const handleGenerateIDCard = (student) => {
-    // Yaha aap PDF generate kar sakte ho ya backend API hit kar sakte ho
-    alert(`Generate ID Card for: ${student.full_name} (ID: ${student.id})`);
+    setSelectedStudent(student);
+    setShowModal(true);
+  };
+
+  // Handle Print
+  const handlePrint = () => {
+    const printContent = document.getElementById("id-card-to-print").innerHTML;
+    const originalContent = document.body.innerHTML;
+
+    document.body.innerHTML = printContent;
+    window.print();
+    document.body.innerHTML = originalContent;
+    window.location.reload();
+  };
+
+  // Handle Download
+  const handleDownload = () => {
+    // In a real implementation, this would generate a PDF
+    alert(
+      `Download functionality would be implemented here for ${selectedStudent.full_name}`
+    );
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedStudent(null);
   };
 
   return (
     <div className="p-4">
       <h2 className="text-lg font-bold mb-4">Student ID Card Generator</h2>
+      <div className="bg-white shadow-md rounded-xl p-6 mb-6 flex gap-6">
+        {/* Branch Dropdown */}
+        <div className="flex-1">
+          <label className="block mb-1 font-medium">Select Branch</label>
+          <select
+            className="border rounded-lg p-2 w-full"
+            value={selectedBranch}
+            onChange={(e) => setSelectedBranch(e.target.value)}
+          >
+            <option value="">-- Select Branch --</option>
+            {branches.map((branch) => (
+              <option key={branch.id} value={branch.id}>
+                {branch.branch_name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-      {/* Branch Dropdown */}
-      <select
-        value={selectedBranch}
-        onChange={handleBranchChange}
-        className="border p-2 m-2"
-      >
-        <option value="">-- Select Branch --</option>
-        {branches.map((b) => (
-          <option key={b.id} value={b.id}>
-            {b.name}
-          </option>
-        ))}
-      </select>
-
-      {/* Course Dropdown */}
-      <select
-        value={selectedCourse}
-        onChange={handleCourseChange}
-        className="border p-2 m-2"
-      >
-        <option value="">-- Select Course --</option>
-        {courses.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.course_name}
-          </option>
-        ))}
-      </select>
+        {/* Course Dropdown */}
+        <div className="flex-1">
+          <label className="block mb-1 font-medium">Select Course</label>
+          <select
+            value={selectedCourse}
+            onChange={(e) => setSelectedCourse(e.target.value)}
+          >
+            <option value="">Select Course</option>
+            {courses.map((course) => (
+              <option key={course.id} value={course.id}>
+                {course.course_name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {/* Student List */}
-      {students.length > 0 && (
+      {filteredStudents.length > 0 && (
         <div className="mt-4">
           <h3 className="font-semibold">Students List</h3>
           <table className="border w-full mt-2">
             <thead>
               <tr className="bg-gray-200">
+                <th className="p-2 border">Photo</th>
                 <th className="p-2 border">Name</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">Course</th>
+                <th className="p-2 border">Parent's Name</th>
                 <th className="p-2 border">Action</th>
               </tr>
             </thead>
             <tbody>
-              {students.map((s) => (
+              {filteredStudents.map((s) => (
                 <tr key={s.id}>
+                  <td className="p-2 border">
+                    <img
+                      src={s.photo}
+                      alt={s.full_name}
+                      width={50}
+                      height={50}
+                    />
+                  </td>
                   <td className="p-2 border">{s.full_name}</td>
-                  <td className="p-2 border">{s.email}</td>
-                  <td className="p-2 border">{s.course_name}</td>
+                  <td className="p-2 border">{s.guardian_name}</td>
                   <td className="p-2 border">
                     <button
                       onClick={() => handleGenerateIDCard(s)}
@@ -168,6 +175,80 @@ function StudentIDCardGenerator() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ID Card Modal */}
+      {showModal && selectedStudent && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>Student ID Card</h3>
+              <button className="close-btn" onClick={closeModal}>
+                ×
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div id="id-card-to-print" className="id-card">
+                <div className="card-pattern"></div>
+
+                <div className="card-header">
+                  <div className="college-logo">
+                    <img src="https://www.sinfode.com/wp-content/uploads/2022/12/digital-marketing-institute-in-sikar.webp" />
+                  </div>
+                  {/* <h1 className="college-name">SINFODE ACADEMY</h1> */}
+                  <p className="id-subtitle">Student Identity Card</p>
+                </div>
+
+                <div className="card-body mb-2">
+                  <div className="student-photo">
+                    <img
+                      src={selectedStudent.photo}
+                      alt={selectedStudent.full_name}
+                      width={100}
+                      height={120}
+                    />
+                  </div>
+
+                  <div className="student-name">
+                    {selectedStudent.full_name.toUpperCase()}
+                  </div>
+
+                  <div className="info-section">
+                    <div className="info-row">
+                      <span className="info-label">Father Name:</span>
+                      <span className="info-value">{selectedStudent.guardian_name}</span>
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Branch:</span>
+                      <span className="info-value">
+                        {branches.find(
+                          (b) =>
+                            b.id.toString() ===
+                            selectedStudent.branch_id?.toString()
+                        )?.branch_name || "N/A"}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn btn-print" onClick={handlePrint}>
+                Print
+              </button>
+              <button className="btn btn-download" onClick={handleDownload}>
+                Download
+              </button>
+              <button className="btn btn-close" onClick={closeModal}>
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

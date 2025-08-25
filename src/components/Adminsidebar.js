@@ -112,13 +112,7 @@ const Adminsidebar = ({ isSidebarOpen, toggleSidebar }) => {
     {
       name: "Reports",
       icon: <FaFileAlt />,
-      subMenu: [
-        { name: "Fee Report", link: "/sinfodeadmin/reports" },
-        {
-          name: "Attendance Report",
-          link: "/sinfodeadmin/reports-analytics/attendance",
-        },
-      ],
+      link: "/sinfodeadmin/reports"
     },
     {
       name: "Settings",

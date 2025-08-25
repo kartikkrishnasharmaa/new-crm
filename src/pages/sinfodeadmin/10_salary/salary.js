@@ -1,12 +1,52 @@
 import SAAdminLayout from "../../../layouts/Sinfodeadmin";
+import { useState, useEffect } from "react";
+import Salayslip from "./salaryslip"
+
+function Overview() {
+  return (
+    <div>
+      <div className="shadow-lg rounded-2xl p-8 w-full max-w-lg">
+      </div>
+    </div>
+  );
+}
 
 
-export default function Salary() {
-  
+export default function TabReport() {
+  const [activeTab, setActiveTab] = useState("salary");
+
   return (
     <SAAdminLayout>
-      <div className="p-6">
-     <h1 className="text-2xl font-bold mb-6">Salary</h1>
+      <div className="flex h-full">
+        {/* Sidebar */}
+        <div className="w-60 bg-white rounded-xl shadow-md p-4 space-y-3">
+          <button
+            onClick={() => setActiveTab("salary")}
+            className={`block w-full text-left px-4 py-5 rounded-lg ${
+              activeTab === "salary"
+                ? "bg-blue-100 text-black"
+                : "hover:bg-blue-100 text-black"
+            }`}
+          >
+            📋 Overview
+          </button>
+          <button
+            onClick={() => setActiveTab("slip")}
+            className={`block w-full text-left px-4 py-5 rounded-lg ${
+              activeTab === "slip"
+                ? "bg-blue-100 text-black"
+                : "hover:bg-blue-100 text-black"
+            }`}
+          >
+            📊 Salary Slip
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 rounded-lg p-6 overflow-y-auto">
+          {activeTab ==="overview" && <Overview />}
+          {activeTab === "slip" && <Salayslip />}
+        </div>
       </div>
     </SAAdminLayout>
   );

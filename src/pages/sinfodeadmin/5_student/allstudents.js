@@ -148,11 +148,7 @@ export default function Allstudents() {
                 {/* Left: Profile + Details */}
                 <div className="flex items-center gap-4">
                   <img
-                    src={
-                      student.photo
-                        ? `/uploads/${student.photo}`
-                        : "https://sipl.ind.in/wp-content/uploads/2022/07/dummy-user.png"
-                    }
+                    src={student.photo}
                     alt={student.full_name}
                     className="w-12 h-12 rounded-full object-cover border"
                   />
@@ -222,11 +218,7 @@ export default function Allstudents() {
               >
                 <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-white shadow-md -mt-10 mb-3">
                   <img
-                    src={
-                      student.photo
-                        ? `/uploads/${student.photo}`
-                        : "https://sipl.ind.in/wp-content/uploads/2022/07/dummy-user.png"
-                    }
+                    src={student.photo}
                     alt={student.full_name}
                     className="w-full h-full object-cover"
                   />
