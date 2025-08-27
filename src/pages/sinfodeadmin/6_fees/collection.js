@@ -134,7 +134,7 @@ const Collection = () => {
       const token = localStorage.getItem("token");
       const dataToSubmit = {
         student_id: selectedStudent,
-        course_id: selectedCourse,
+        course_name: selectedCourse,
         total_fee: formData.total_fee,
         due_date: formData.due_date,
         paid_amount: formData.paid_amount,
@@ -269,7 +269,7 @@ const Collection = () => {
                       <div className="student-name">{record.student?.full_name}</div>
                       <div className="student-id">{record.student?.admission_number}</div>
                     </td>
-                    <td>Course ID: {record.course_id}</td>
+                    <td>Course ID: {record.course_name}</td>
                     <td>{formatCurrency(record.total_fee)}</td>
                     <td>{formatCurrency(record.paid_amount)}</td>
                     <td>{formatCurrency(record.pending_amount)}</td>

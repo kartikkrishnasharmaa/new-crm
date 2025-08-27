@@ -91,7 +91,7 @@ export default function StaffDetail() {
         <div className="flex-1 bg-white shadow-md rounded-xl p-6">
           {/* Tabs */}
           <div className="flex gap-4 mb-4 border-b">
-            {["projects", "team", "vacations"].map((tab) => (
+            {["projects", "team"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -110,31 +110,7 @@ export default function StaffDetail() {
           <div className="space-y-4">
             {activeTab === "projects" && (
               <>
-                {/* Example Project Card */}
-                <div className="bg-white shadow rounded-xl p-5 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-semibold">Internal Project</h4>
-                    <p className="text-sm text-gray-500">
-                      Created on May 28, 2020
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-700">Tasks: 23</p>
-                    <p className="text-sm text-gray-400">Active: 20</p>
-                  </div>
-                </div>
-                <div className="bg-white shadow rounded-xl p-5 flex justify-between items-center">
-                  <div>
-                    <h4 className="font-semibold">Food Delivery Service</h4>
-                    <p className="text-sm text-gray-500">
-                      Created on Sep 10, 2020
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-700">Tasks: 50</p>
-                    <p className="text-sm text-gray-400">Active: 24</p>
-                  </div>
-                </div>
+                <p className="text-gray-600">Project details will go here...</p>
               </>
             )}
 
@@ -144,13 +120,6 @@ export default function StaffDetail() {
               </div>
             )}
 
-            {activeTab === "vacations" && (
-              <div className="bg-white shadow rounded-xl p-6">
-                <p className="text-gray-600">
-                  Vacation records will go here...
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -68,10 +68,14 @@ function ViewStaffAttendance() {
           year: parseInt(year)
         }
       });
-      setAttendance(res.data || []);
+      
+      // ✅ Extract data from res.data.data (nested structure)
+      const attendanceData = res.data && res.data.data ? res.data.data : [];
+      setAttendance(Array.isArray(attendanceData) ? attendanceData : []);
     } catch (error) {
       console.error("Error fetching attendance:", error);
       alert("❌ Failed to fetch attendance");
+      setAttendance([]); // ✅ Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -93,13 +97,16 @@ function ViewStaffAttendance() {
           year: parseInt(year)
         }
       });
-      setStaffDetails(res.data || []);
+      
+      // ✅ Extract data from res.data.data (nested structure)
+      const staffAttendanceData = res.data && res.data.data ? res.data.data : [];
+      setStaffDetails(Array.isArray(staffAttendanceData) ? staffAttendanceData : []);
     } catch (error) {
       console.error("Error fetching staff details:", error);
       // Fallback to using the grouped data if API fails
-      const staffRecords = attendance.filter(
-        (record) => record.staff_id === staff.id
-      );
+      const staffRecords = Array.isArray(attendance) 
+        ? attendance.filter((record) => record.staff_id === staff.id)
+        : [];
       setStaffDetails(staffRecords);
     }
   };
@@ -110,22 +117,24 @@ function ViewStaffAttendance() {
     setStaffDetails(null);
   };
 
-  // ✅ Group attendance by staff (if needed)
-  const grouped = attendance.reduce((acc, record) => {
-    const id = record.staff_id;
-    if (!acc[id]) {
-      acc[id] = {
-        staff: record.staff,
-        records: [],
-      };
-    }
-    acc[id].records.push(record);
-    return acc;
-  }, {});
+  // ✅ Safe grouping function
+  const grouped = Array.isArray(attendance) && attendance.length > 0 
+    ? attendance.reduce((acc, record) => {
+        const id = record.staff_id;
+        if (!acc[id]) {
+          acc[id] = {
+            staff: record.staff,
+            records: [],
+          };
+        }
+        acc[id].records.push(record);
+        return acc;
+      }, {})
+    : {};
 
   // ✅ Function to generate calendar data for the selected month
   const generateCalendarData = () => {
-    if (!month || !staffDetails) return [];
+    if (!month || !staffDetails || !Array.isArray(staffDetails)) return [];
     
     const [year, monthNum] = month.split('-').map(Number);
     const firstDay = new Date(year, monthNum - 1, 1);
@@ -144,7 +153,7 @@ function ViewStaffAttendance() {
     // Add cells for each day of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${monthNum.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
-      const record = staffDetails.find(r => r.date.startsWith(dateStr));
+      const record = staffDetails.find(r => r.attendance_date && r.attendance_date.startsWith(dateStr));
       days.push({
         date: dateStr,
         status: record ? record.status : null,
@@ -158,7 +167,7 @@ function ViewStaffAttendance() {
 
   // ✅ Calculate statistics
   const calculateStats = () => {
-    if (!staffDetails) return { present: 0, absent: 0, percentage: 0 };
+    if (!staffDetails || !Array.isArray(staffDetails)) return { present: 0, absent: 0, percentage: 0 };
     
     const presentCount = staffDetails.filter(r => r.status === "Present").length;
     const absentCount = staffDetails.filter(r => r.status === "Absent").length;
@@ -218,7 +227,7 @@ function ViewStaffAttendance() {
             <option value="">-- Select Staff --</option>
             {staffList.map((staff) => (
               <option key={staff.id} value={staff.id}>
-                {staff.full_name}
+                {staff.employee_name}
               </option>
             ))}
           </select>
@@ -240,7 +249,7 @@ function ViewStaffAttendance() {
       {loading && <p className="text-gray-500">⏳ Fetching attendance...</p>}
 
       {/* Attendance Table */}
-      {attendance.length > 0 ? (
+      {Array.isArray(attendance) && attendance.length > 0 ? (
         <div className="bg-white rounded-xl shadow-lg overflow-hidden">
           <table className="w-full border-collapse">
             <thead className="bg-indigo-600 text-white">
@@ -263,7 +272,7 @@ function ViewStaffAttendance() {
                     className="border-b hover:bg-gray-50"
                   >
                     <td className="p-3">{staff.id}</td>
-                    <td className="p-3 font-medium">{staff.full_name}</td>
+                    <td className="p-3 font-medium">{staff.employee_name}</td>
                     <td className="p-3 text-green-600 font-semibold">{presentCount}</td>
                     <td className="p-3 text-red-500 font-semibold">{absentCount}</td>
                     <td className="p-3">
@@ -297,7 +306,7 @@ function ViewStaffAttendance() {
             {/* Modal Header */}
             <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
               <h3 className="text-xl font-semibold">
-                📅 Attendance Details for {selectedStaffMember.full_name}
+                📅 Attendance Details for {selectedStaffMember.employee_name}
               </h3>
               <button 
                 onClick={closeModal}

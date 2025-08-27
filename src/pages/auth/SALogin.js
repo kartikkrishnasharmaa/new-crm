@@ -25,10 +25,11 @@ const Login = () => {
  
     try {
       const response = await axios.post('/login', formData);
-      const { token, salonAdmin } = response.data;
+      const { token, user } = response.data;
       // console.log('Login Successful:', response.data);
       localStorage.setItem("token", token);
-      localStorage.setItem("salonAdmin", JSON.stringify(salonAdmin));
+          localStorage.setItem("user", JSON.stringify(user));
+
       setSuccess(true);
  
       navigate('/sinfodeadmin/dashboard');

@@ -62,7 +62,7 @@ const FeesStructure = () => {
   // Stats calculation
   const totalFees = feeStructures.reduce((sum, structure) => sum + parseFloat(structure.amount), 0);
   const totalInstallments = feeStructures.reduce((sum, structure) => 
-    sum + (structure.payment_mode === 'Installments' ? structure.number_of_installments : 0), 0);
+    sum + (structure.payment_mode === 'installments' ? structure.number_of_installments : 0), 0);
   const totalCourses = new Set(feeStructures.map(s => s.course_id)).size;
 
   const openModal = (mode, id = null) => {
@@ -108,20 +108,6 @@ const FeesStructure = () => {
     setViewStructure(null);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this fee structure?')) {
-      try {
-        const token = localStorage.getItem("token");
-        await axios.delete(`/fee-structures/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setFeeStructures(feeStructures.filter(s => s.id !== id));
-      } catch (error) {
-        console.error("Error deleting fee structure:", error);
-      }
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -132,7 +118,7 @@ const FeesStructure = () => {
         fee_type: formData.fee_type,
         amount: formData.amount,
         payment_mode: formData.payment_mode,
-        number_of_installments: formData.payment_mode === 'Installments' ? parseInt(formData.number_of_installments) : 0,
+        number_of_installments: formData.payment_mode === 'installments' ? parseInt(formData.number_of_installments) : 0,
       };
 
       if (currentEditId) {
@@ -188,7 +174,29 @@ const FeesStructure = () => {
       <main className="fs-main">
         {/* Stats Cards */}
         <div className="fs-stats-grid">
+          <div className="fs-stat-card">
+            <div className="fs-stat-content">
+              <div className="fs-stat-icon bg-blue">
+                <i className="fas fa-money-bill-wave"></i>
+              </div>
+              <div className="fs-stat-text">
+                <p>Total Fees</p>
+                <h3>₹{totalFees.toLocaleString()}</h3>
+              </div>
+            </div>
+          </div>
           
+          <div className="fs-stat-card">
+            <div className="fs-stat-content">
+              <div className="fs-stat-icon bg-orange">
+                <i className="fas fa-calendar-alt"></i>
+              </div>
+              <div className="fs-stat-text">
+                <p>Total Installments</p>
+                <h3>{totalInstallments}</h3>
+              </div>
+            </div>
+          </div>
           
           <div className="fs-stat-card">
             <div className="fs-stat-content">
@@ -201,7 +209,6 @@ const FeesStructure = () => {
               </div>
             </div>
           </div>
-          
           
           <div className="fs-stat-card">
             <div className="fs-stat-content">
@@ -258,25 +265,19 @@ const FeesStructure = () => {
                       ₹{parseFloat(structure.amount).toLocaleString()}
                     </td>
                     <td>
-                      <span className={`fs-badge ${structure.payment_mode === 'Installments' ? 'fs-badge-green' : 'fs-badge-orange'}`}>
+                      <span className={`fs-badge ${structure.payment_mode === 'installments' ? 'fs-badge-green' : 'fs-badge-orange'}`}>
                         {structure.payment_mode}
                       </span>
                     </td>
                     <td>
-                      {structure.payment_mode === 'Installments' 
+                      {structure.payment_mode === 'installments' 
                         ? `${structure.number_of_installments} installments` 
-                        : 'N/A'}
+                        : `${structure.number_of_installments}`}
                     </td>
                     <td>
                       <div className="fs-actions">
                         <button onClick={() => handleView(structure.id)} className="fs-action-btn text-blue">
                           <i className="fas fa-eye"></i>
-                        </button>
-                        <button onClick={() => openModal('edit', structure.id)} className="fs-action-btn text-green">
-                          <i className="fas fa-edit"></i>
-                        </button>
-                        <button onClick={() => handleDelete(structure.id)} className="fs-action-btn text-red">
-                          <i className="fas fa-trash"></i>
                         </button>
                       </div>
                     </td>
@@ -335,9 +336,9 @@ const FeesStructure = () => {
                   >
                     <option value="">Select Fee Type</option>
                     <option value="Tuition">Tuition</option>
-                    <option value="Registration">Registration</option>
-                    <option value="Examination">Examination</option>
-                    <option value="Laboratory">Laboratory</option>
+                    <option value="Exam">Exam</option>
+                    <option value="Library">Library</option>
+                    <option value="Miscellaneous">Other</option>
                   </select>
                 </div>
                 
@@ -362,13 +363,14 @@ const FeesStructure = () => {
                     required
                   >
                     <option value="">Select Payment Mode</option>
-                    <option value="One-time">One-time</option>
-                    <option value="Installments">Installments</option>
+                    <option value="installments">Installments</option>
+                    <option value="Lumpsum">Lumpsum</option>
+                    <option value="EMI">EMI</option>
                   </select>
                 </div>
               </div>
               
-              {formData.payment_mode === 'Installments' && (
+              {formData.payment_mode === 'installments' && (
                 <div className="fs-installment-section">
                   <div className="fs-form-group">
                     <label>Number of Installments</label>
@@ -433,12 +435,23 @@ const FeesStructure = () => {
                 </div>
               </div>
               
-              {viewStructure.payment_mode === 'Installments' && (
+              {viewStructure.payment_mode === 'installments' && (
                 <div>
                   <h4>Installment Information</h4>
                   <div className="fs-info-box">
                     <p className="fs-info-title">{viewStructure.number_of_installments} Installments</p>
-                    <p>Due dates will be set separately</p>
+                    {viewStructure.due_dates && viewStructure.due_dates.length > 0 ? (
+                      <div>
+                        <p>Due Dates:</p>
+                        <ul>
+                          {viewStructure.due_dates.map((date, index) => (
+                            <li key={index}>{new Date(date).toLocaleDateString()}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : (
+                      <p>Due dates will be set separately</p>
+                    )}
                   </div>
                 </div>
               )}

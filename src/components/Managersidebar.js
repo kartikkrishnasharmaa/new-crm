@@ -46,13 +46,13 @@ const ManagerSidebar = ({ isSidebarOpen, toggleSidebar }) => {
       name: "Employees",
       icon: <FaUsers />,
       link: selectedBranch
-        ? `/sinfodemanager/employees?branchId=${selectedBranch}`
-        : "/sinfodemanager/employees",
+        ? `/sinfodemanager/staff?branchId=${selectedBranch}`
+        : "/sinfodemanager/staff",
     },
     {
       name: "Students",
       icon: <FaUsers />,
-      link: "/sinfodemanager",
+      link: "/sinfodemanager/students",
     },
     {
       name: "Courses",

@@ -25,14 +25,22 @@ const Login = () => {
  
     try {
       const response = await axios.post('/login', formData);
-      const { token, salonAdmin } = response.data;
+      const { token, user } = response.data;
       // console.log('Login Successful:', response.data);
       localStorage.setItem("token", token);
-      localStorage.setItem("salonAdmin", JSON.stringify(salonAdmin));
+    localStorage.setItem("user", JSON.stringify(user));
+      
       setSuccess(true);
- 
-      navigate('/staff/dashboard');
-    } catch (err) {
+ if (user.role === "admin") {
+        navigate("/sinfodeadmin/dashboard");
+      } else if (user.role === "branch_manager") {
+        navigate("/sinfodemanager/dashboard");
+      } else if (user.role === "staff") {
+        navigate("/staff/dashboard");
+      } else {
+        navigate("/"); // default
+      }
+    }  catch (err) {
       const errorMessage = err.response?.data?.message || 'Invalid credentials';
       setError(errorMessage);
       toast.error(errorMessage);

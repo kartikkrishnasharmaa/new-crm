@@ -274,7 +274,7 @@ const ExamForm = ({
                 >
                   <option value="">Select Branch</option>
                   {branches.map(branch => (
-                    <option key={branch.id} value={branch.id}>{branch.branch_name}</option>
+                    <option key={branch.id} value={branch.id}>{branch.name}</option>
                   ))}
                 </select>
               </div>
@@ -293,7 +293,7 @@ const ExamForm = ({
                 >
                   <option value="">Select Course</option>
                   {courses.map(course => (
-                    <option key={course.id} value={course.id}>{course.course_name}</option>
+                    <option key={course.id} value={course.id}>{course.name}</option>
                   ))}
                 </select>
               </div>
@@ -312,7 +312,7 @@ const ExamForm = ({
                 >
                   <option value="">Select Student</option>
                   {filteredStudents.map(student => (
-                    <option key={student.id} value={student.id}>{student.full_name}</option>
+                    <option key={student.id} value={student.id}>{student.name}</option>
                   ))}
                 </select>
               </div>

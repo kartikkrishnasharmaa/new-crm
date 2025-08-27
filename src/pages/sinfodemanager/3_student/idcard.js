@@ -211,7 +211,7 @@ function StudentIDCardGenerator() {
                     />
                   </div>
 
-                  <div className="student-name text-white">
+                  <div className="student-name">
                     {selectedStudent.full_name.toUpperCase()}
                   </div>
 

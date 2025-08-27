@@ -1,80 +1,74 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from '../../api/axiosConfig';
-import { ToastContainer, toast } from 'react-toastify';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "../../api/axiosConfig";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
- 
+
 const Login = () => {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
- 
-  const [, setError] = useState('');
+
+  const [, setError] = useState("");
   const [, setSuccess] = useState(false);
   const navigate = useNavigate();
- 
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
- 
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setError('');
-  setSuccess(false);
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
 
-  try {
-    const response = await axios.post('/login', formData);
-    const { token, user } = response.data;
-    console.log('Login Successful:', response.data);
+    try {
+      const response = await axios.post("/login", formData);
+      const { token, user } = response.data;
+      console.log("Login Successful:", response.data);
 
-    // save token + user
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(user));
+      // save token + user
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-    setSuccess(true);
+      setSuccess(true);
 
-    // role ke hisaab se redirect karna
-    if (user.role === "admin") {
-      navigate('/sinfodeadmin/dashboard');
-    } else if (user.role === "branch_manager") {
-      navigate('/sinfodemanager/dashboard');
-    } else {
-      navigate('/'); // default
+      if (user.role === "admin") {
+        navigate("/sinfodeadmin/dashboard");
+      } else if (user.role === "branch_manager") {
+        navigate("/sinfodemanager/dashboard");
+      } else if (user.role === "staff") {
+        navigate("/staff/dashboard");
+      } else {
+        navigate("/"); // default
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || "Invalid credentials";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
+  };
 
-  } catch (err) {
-    const errorMessage = err.response?.data?.message || 'Invalid credentials';
-    setError(errorMessage);
-    toast.error(errorMessage);
-  }
-};
-
- 
   return (
     <div className="flex min-h-screen">
       {/* Left Side */}
       <div className="hidden md:flex w-1/2 bg-indigo-600 text-white flex-col justify-center items-center p-8">
         {/* <h1 className="text-4xl font-bold mb-2">Admin Login</h1> */}
- 
+
         {/* Logo */}
-        <img
-          src="/imag.png"
-          alt="Logo"
-          className="w-[490px] h-[300px] mb-4"
-        />
- 
+        <img src="/imag.png" alt="Logo" className="w-[490px] h-[300px] mb-4" />
+
         {/* Heading */}
- 
+
         {/* Subtitle */}
- 
       </div>
- 
+
       {/* Right Side - Login Form */}
       <div className="flex flex-col justify-center items-center w-full md:w-1/2 p-8 bg-gray-50">
         <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
           <h2 className="text-3xl font-bold text-center mb-6">MANAGER LOGIN</h2>
- 
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
@@ -94,7 +88,7 @@ const Login = () => {
                 className="border-gray-300 rounded-md w-full p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
- 
+
             {/* Password */}
             <div>
               <label
@@ -114,16 +108,12 @@ const Login = () => {
                   className="border-gray-300 rounded-md w-full p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 pr-10"
                 />
                 <button
-                  type="submit" className="absolute right-2 top-2 text-gray-500"
- 
-                >
- 
-                </button>
+                  type="submit"
+                  className="absolute right-2 top-2 text-gray-500"
+                ></button>
               </div>
             </div>
- 
-     
- 
+
             {/* Submit */}
             <button
               type="submit"
@@ -132,16 +122,13 @@ const Login = () => {
               Login
             </button>
           </form>
- 
-       
         </div>
       </div>
- 
+
       {/* Toast */}
       {/* <ToastContainer position="top-right" autoClose={3000} /> */}
     </div>
   );
-}
- 
+};
+
 export default Login;
- 
